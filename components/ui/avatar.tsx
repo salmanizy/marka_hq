@@ -32,6 +32,8 @@ function AvatarImage({
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
+      // Jika src tidak ada, gunakan link gambar dari GitHub shadcn atau placeholder lainnya
+      src="https://github.com/shadcn.png"
       className={cn(
         "aspect-square size-full rounded-full object-cover",
         className
