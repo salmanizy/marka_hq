@@ -14,7 +14,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { GalleryVerticalEndIcon, AudioLinesIcon, TerminalIcon, TerminalSquareIcon, BotIcon, BookOpenIcon, Settings2Icon, FrameIcon, PieChartIcon, MapIcon } from "lucide-react"
+import { AudioLinesIcon, Proportions, ArrowDownRightIcon, ScrollText, PanelsTopLeft, Drill, UserRound, CircleGauge, ChartBar } from "lucide-react"
 
 // This is sample data.
 const data = {
@@ -25,28 +25,20 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "Marka Digital Indonesia",
       logo: (
-        <GalleryVerticalEndIcon
+        <ArrowDownRightIcon
         />
       ),
       plan: "Enterprise",
     },
     {
-      name: "Acme Corp.",
+      name: "Marka Growth Partner",
       logo: (
         <AudioLinesIcon
         />
       ),
       plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: (
-        <TerminalIcon
-        />
-      ),
-      plan: "Free",
     },
   ],
 
@@ -55,7 +47,7 @@ const data = {
       name: "Report",
       url: "/paid-media-report",
       icon: (
-        <FrameIcon
+        <Proportions
         />
       ),
     },
@@ -63,7 +55,7 @@ const data = {
       name: "Briefs",
       url: "/paid-media-briefs",
       icon: (
-        <PieChartIcon
+        <ScrollText
         />
       ),
     },
@@ -71,7 +63,7 @@ const data = {
       name: "Landing Page Builder",
       url: "/landing-page-builder",
       icon: (
-        <MapIcon
+        <PanelsTopLeft
         />
       ),
     },
@@ -82,7 +74,7 @@ const data = {
       name: "Report",
       url: "/creative-report",
       icon: (
-        <FrameIcon
+        <Proportions
         />
       ),
     },
@@ -90,7 +82,7 @@ const data = {
       name: "Tools",
       url: "/creative-tools",
       icon: (
-        <PieChartIcon
+        <Drill
         />
       ),
     },
@@ -98,7 +90,7 @@ const data = {
       name: "Creators",
       url: "/creative-creators",
       icon: (
-        <MapIcon
+        <UserRound
         />
       ),
     },
@@ -109,7 +101,7 @@ const data = {
       name: "Report",
       url: "/commercial-report",
       icon: (
-        <FrameIcon
+        <Proportions
         />
       ),
     },
@@ -117,7 +109,7 @@ const data = {
       name: "Dashboard",
       url: "/commercial-dashboard",
       icon: (
-        <PieChartIcon
+        <CircleGauge
         />
       ),
     },
@@ -125,7 +117,7 @@ const data = {
       name: "Revenue",
       url: "/commercial-revenue",
       icon: (
-        <MapIcon
+        <ChartBar
         />
       ),
     },

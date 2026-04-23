@@ -31,7 +31,7 @@ export function NavPaidMedia({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Creative</SidebarGroupLabel>
+      <SidebarGroupLabel>Paid Media</SidebarGroupLabel>
       <SidebarMenu>
         {list.map((item) => (
           <SidebarMenuItem key={item.name}>
