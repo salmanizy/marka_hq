@@ -2,8 +2,9 @@
 
 import * as React from "react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
+import { NavPaidMedia } from "@/components/nav-paid-media"
+import { NavCreative } from "@/components/nav-creative"
+import { NavCommercial } from "@/components/nav-commercial"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -18,8 +19,8 @@ import { GalleryVerticalEndIcon, AudioLinesIcon, TerminalIcon, TerminalSquareIco
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Salman Azhar",
+    email: "salman-azhar@marka-digital.id",
     avatar: "https://github.com/shadcn.png",
   },
   teams: [
@@ -48,7 +49,62 @@ const data = {
       plan: "Free",
     },
   ],
-  navMain: [
+
+  navPaid: [
+    {
+      name: "Design Engineering",
+      url: "http://localhost:3000/google-ads",
+      icon: (
+        <FrameIcon
+        />
+      ),
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: (
+        <PieChartIcon
+        />
+      ),
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: (
+        <MapIcon
+        />
+      ),
+    },
+  ],
+
+  navCre: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: (
+        <FrameIcon
+        />
+      ),
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: (
+        <PieChartIcon
+        />
+      ),
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: (
+        <MapIcon
+        />
+      ),
+    },
+  ],
+
+  navCom: [
     {
       title: "Playground",
       url: "#",
@@ -56,7 +112,7 @@ const data = {
         <TerminalSquareIcon
         />
       ),
-      isActive: true,
+      isActive: false,
       items: [
         {
           title: "History",
@@ -147,32 +203,6 @@ const data = {
       ],
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <FrameIcon
-        />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
-      ),
-    },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -181,10 +211,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavPaidMedia list={data.navPaid} />
+        <NavCreative list={data.navCre} />
+        <NavCommercial items={data.navCom} />
       </SidebarContent>
+      
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

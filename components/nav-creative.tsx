@@ -18,10 +18,10 @@ import {
 } from "@/components/ui/sidebar"
 import { MoreHorizontalIcon, FolderIcon, ArrowRightIcon, Trash2Icon } from "lucide-react"
 
-export function NavProjects({
-  projects,
+export function NavCreative({
+  list,
 }: {
-  projects: {
+  list: {
     name: string
     url: string
     icon: React.ReactNode
@@ -31,9 +31,9 @@ export function NavProjects({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel>Creative</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
+        {list.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
               <a href={item.url}>
