@@ -21,9 +21,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* PENTING: Gunakan font-sans di sini agar Tailwind v4 
-          bisa menerapkan font Geist ke seluruh aplikasi.
-      */}
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <TooltipProvider>
           <SidebarProvider>

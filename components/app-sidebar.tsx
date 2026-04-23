@@ -52,24 +52,24 @@ const data = {
 
   navPaid: [
     {
-      name: "Design Engineering",
-      url: "http://localhost:3000/google-ads",
+      name: "Report",
+      url: "/paid-media-report",
       icon: (
         <FrameIcon
         />
       ),
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
+      name: "Briefs",
+      url: "/paid-media-briefs",
       icon: (
         <PieChartIcon
         />
       ),
     },
     {
-      name: "Travel",
-      url: "#",
+      name: "Landing Page Builder",
+      url: "/landing-page-builder",
       icon: (
         <MapIcon
         />
@@ -79,24 +79,24 @@ const data = {
 
   navCre: [
     {
-      name: "Design Engineering",
-      url: "#",
+      name: "Report",
+      url: "/creative-report",
       icon: (
         <FrameIcon
         />
       ),
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
+      name: "Tools",
+      url: "/creative-tools",
       icon: (
         <PieChartIcon
         />
       ),
     },
     {
-      name: "Travel",
-      url: "#",
+      name: "Creators",
+      url: "/creative-creators",
       icon: (
         <MapIcon
         />
@@ -106,101 +106,28 @@ const data = {
 
   navCom: [
     {
-      title: "Playground",
-      url: "#",
+      name: "Report",
+      url: "/commercial-report",
       icon: (
-        <TerminalSquareIcon
+        <FrameIcon
         />
       ),
-      isActive: false,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Models",
-      url: "#",
+      name: "Dashboard",
+      url: "/commercial-dashboard",
       icon: (
-        <BotIcon
+        <PieChartIcon
         />
       ),
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Documentation",
-      url: "#",
+      name: "Revenue",
+      url: "/commercial-revenue",
       icon: (
-        <BookOpenIcon
+        <MapIcon
         />
       ),
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
     },
   ],
 }
@@ -215,7 +142,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavPaidMedia list={data.navPaid} />
         <NavCreative list={data.navCre} />
-        <NavCommercial items={data.navCom} />
+        <NavCommercial list={data.navCom} />
       </SidebarContent>
       
       <SidebarFooter>
