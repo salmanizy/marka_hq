@@ -15,7 +15,7 @@ export default async function Page({
         <div className="flex items-center gap-2">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2" />
-          <h1 className="font-medium">Paid Media | Client Insights</h1>
+          <h1 className="font-medium">Paid Media | Meta Ads Clients</h1>
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

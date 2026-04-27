@@ -21,14 +21,6 @@ interface InsightRow {
   date_stop: string
 }
 
-function toIDRAbbr(value: string) {
-  const n = Math.round(Number(value))
-  if (n >= 1_000_000_000) return `Rp ${(n / 1e9).toFixed(2)}B`
-  if (n >= 1_000_000) return `Rp ${(n / 1e6).toFixed(2)}M`
-  if (n >= 1_000) return `Rp ${(n / 1e3).toFixed(0)}K`
-  return `Rp ${new Intl.NumberFormat("id-ID").format(n)}`
-}
-
 function toIDRFull(value: string) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -180,9 +172,9 @@ export function InsightsClient({ actId }: { actId: string }) {
           {loading ? (
             <Skeleton className="h-5 w-28 mb-1" />
           ) : (
-            <p className="font-medium text-base leading-none">{row?.account_name ?? `act_${actId}`}</p>
+            <p className="font-medium text-base leading-none">{row?.account_name ?? `${actId}`}</p>
           )}
-          <p className="text-xs text-muted-foreground mt-1.5">act_{actId}</p>
+          <p className="text-xs text-muted-foreground mt-1.5">{actId}</p>
         </div>
         {row && (
           <span className="text-xs text-muted-foreground bg-muted rounded-md px-2.5 py-1 whitespace-nowrap">
@@ -196,8 +188,8 @@ export function InsightsClient({ actId }: { actId: string }) {
         <MetricCard
           hero
           label="Total spend"
-          value={row ? toIDRAbbr(row.spend) : "—"}
-          sub={row ? toIDRFull(row.spend) : "IDR"}
+          value={row ? `Rp. ${Number(row.spend).toLocaleString('id-ID')}` : "IDR"}
+          sub="Total pengeluaran iklan"
           loading={loading}
         />
         <MetricCard
@@ -226,7 +218,7 @@ export function InsightsClient({ actId }: { actId: string }) {
         />
         <MetricCard
           label="CPC"
-          value={row ? toIDRAbbr(row.cpc) : "—"}
+          value={row ? `Rp. ${parseFloat(row.cpc).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
           sub="Cost per click"
           valueClassName="text-blue-600 dark:text-blue-400"
           loading={loading}

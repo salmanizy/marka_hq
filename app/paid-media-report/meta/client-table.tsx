@@ -47,14 +47,18 @@ export function ClientTable({ clients }: { clients: Client[] }) {
       <div className="rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+            <tr className="bg-muted">
+              {/* Kolom Pertama: Beri rounded-tl-xl agar background ikut melengkung di kiri atas */}
+              <th className="rounded-tl-xl border-b px-4 py-3 text-left font-medium text-muted-foreground">
                 Client Account Name
               </th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+              
+              <th className="border-b px-4 py-3 text-left font-medium text-muted-foreground">
                 Account ID
               </th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+              
+              {/* Kolom Terakhir: Beri rounded-tr-xl agar background ikut melengkung di kanan atas */}
+              <th className="rounded-tr-xl border-b px-4 py-3 text-left font-medium text-muted-foreground">
                 Act ID
               </th>
             </tr>
@@ -71,7 +75,7 @@ export function ClientTable({ clients }: { clients: Client[] }) {
                 <tr key={index} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/paid-media-report/${encodeURIComponent(client.actId)}`}
+                      href={`/paid-media-report/meta/${encodeURIComponent(client.actId)}`}
                       className="text-primary font-medium hover:underline"
                     >
                       {client.name}
