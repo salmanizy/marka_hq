@@ -46,7 +46,7 @@ export function ClientTable({ clients }: { clients: Client[] }) {
         </Button>
       </div>
 
-      <div className="rounded-xl border bg-card">
+      <div className="rounded-xl overflow-x-auto border bg-card">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted">
