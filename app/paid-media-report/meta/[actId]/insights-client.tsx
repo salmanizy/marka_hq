@@ -9,27 +9,29 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 
+interface MetaActionArray {
+  action_type: string
+  value: string
+}
+
 interface InsightRow {
   spend: string
   impressions: string
   clicks: string
   ctr: string
   cpc: string
-  conversions?: string
   account_name: string
   date_start: string
   date_stop: string
+  reach?: string
+  frequency?: string
+  cpm?: string
+  conversions?: string
+  actions?: MetaActionArray[]
+  cost_per_action_type?: MetaActionArray[]
 }
 
-function toIDRFull(value: string) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(parseFloat(value))
-}
-
-function fmtNum(value: string) {
+function fmtNum(value: string | number) {
   return new Intl.NumberFormat("id-ID").format(Math.round(Number(value)))
 }
 
@@ -53,16 +55,16 @@ function MetricCard({
   loading?: boolean
 }) {
   return (
-    <div className={`rounded-xl border bg-card p-5 flex flex-col gap-2 ${hero ? "p-6" : ""}`}>
-      <p className="text-xs text-muted-foreground tracking-wide">{label}</p>
+    <div className={`rounded-xl border bg-card p-5 flex flex-col gap-2 ${hero ? "p-6 border-primary/20 bg-primary/5" : ""}`}>
+      <p className="text-xs text-muted-foreground tracking-wide font-medium">{label}</p>
       {loading ? (
-        <Skeleton className={hero ? "h-10 w-32" : "h-8 w-24"} />
+        <Skeleton className={hero ? "h-10 w-32 my-1" : "h-8 w-24 my-0.5"} />
       ) : (
-        <p className={`font-medium leading-none tracking-tight ${hero ? "text-4xl" : "text-3xl"} ${valueClassName}`}>
+        <p className={`font-semibold leading-none tracking-tight ${hero ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"} ${valueClassName}`}>
           {value}
         </p>
       )}
-      {sub && <p className="text-xs text-muted-foreground/60">{sub}</p>}
+      {sub && <p className="text-xs text-muted-foreground/70 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -110,9 +112,18 @@ export function InsightsClient({ actId }: { actId: string }) {
 
   const row = rows[0]
 
-  return (
-    <div className="flex flex-col gap-5">
+  // Ekstraksi metrik hasil dan CPL langsung dari objek data Meta
+  const totalResultsRaw = row?.conversions 
+    ? row.conversions 
+    : row?.actions?.find((x) => x.action_type === "purchase" || x.action_type === "lead" || x.action_type === "omni_purchase")?.value 
+      || row?.actions?.[0]?.value || "0"
 
+  const cpl = row?.cost_per_action_type?.find(
+    (x) => x.action_type === "lead" || x.action_type === "omni_lead"
+  )?.value || "0"
+
+  return (
+    <div className="flex flex-col gap-6">
       {/* Date picker */}
       <div className="flex items-center gap-2">
         <Popover open={calOpen} onOpenChange={setCalOpen}>
@@ -183,55 +194,93 @@ export function InsightsClient({ actId }: { actId: string }) {
         )}
       </div>
 
-      {/* Hero metrics — Spend & Impressions */}
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard
-          hero
-          label="Total spend"
-          value={row ? `Rp. ${Number(row.spend).toLocaleString('id-ID')}` : "IDR"}
-          sub="Total pengeluaran iklan"
-          loading={loading}
-        />
-        <MetricCard
-          hero
-          label="Impressions"
-          value={row ? fmtNum(row.impressions) : "—"}
-          sub="Total tayangan"
-          loading={loading}
-        />
+      {/* Kelompok 1: Core Performance Metrics (Hero Grid) */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold tracking-tight text-muted-foreground/80">Core Performance Metrics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <MetricCard
+            hero
+            label="Total Spend"
+            value={row ? `Rp ${Math.round(Number(row.spend)).toLocaleString('id-ID')}` : "—"}
+            sub="Total biaya pengeluaran iklan"
+            loading={loading}
+          />
+          <MetricCard
+            hero
+            label="Total Result"
+            value={row ? fmtNum(totalResultsRaw) : "—"}
+            sub="Total tindakan konversi utama"
+            valueClassName="text-emerald-600 dark:text-emerald-400"
+            loading={loading}
+          />
+          <MetricCard
+            hero
+            label="Cost per Lead (CPL)"
+            value={row && cpl !== "0" ? `Rp ${Math.round(Number(cpl)).toLocaleString('id-ID')}` : "—"}
+            sub="Biaya rata-rata perolehan prospek"
+            valueClassName="text-blue-600 dark:text-blue-400"
+            loading={loading}
+          />
+        </div>
       </div>
 
-      {/* Secondary metrics — Clicks, CTR, CPC */}
-      <div className="grid grid-cols-3 gap-3">
-        <MetricCard
-          label="Clicks"
-          value={row ? fmtNum(row.clicks) : "—"}
-          sub="Total klik"
-          loading={loading}
-        />
-        <MetricCard
-          label="CTR"
-          value={row ? `${parseFloat(row.ctr).toFixed(2)}%` : "—"}
-          sub="Click-through rate"
-          valueClassName="text-emerald-600 dark:text-emerald-400"
-          loading={loading}
-        />
-        <MetricCard
-          label="CPC"
-          value={row ? `Rp. ${parseFloat(row.cpc).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
-          sub="Cost per click"
-          valueClassName="text-blue-600 dark:text-blue-400"
-          loading={loading}
-        />
+      {/* Kelompok 2: Delivery & Distribution Metrics */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold tracking-tight text-muted-foreground/80">Delivery & Distribution</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <MetricCard
+            label="Reach"
+            value={row?.reach ? fmtNum(row.reach) : "—"}
+            sub="Jumlah audiens unik"
+            loading={loading}
+          />
+          <MetricCard
+            label="Impressions"
+            value={row ? fmtNum(row.impressions) : "—"}
+            sub="Total tayangan iklan"
+            loading={loading}
+          />
+          <MetricCard
+            label="Frequency"
+            value={row?.frequency ? `${parseFloat(row.frequency).toFixed(2)}x` : "—"}
+            sub="Rata-rata frekuensi per orang"
+            loading={loading}
+          />
+          <MetricCard
+            label="CPM"
+            value={row?.cpm ? `Rp ${Math.round(Number(row.cpm)).toLocaleString('id-ID')}` : "—"}
+            sub="Cost per 1.000 impressions"
+            loading={loading}
+          />
+        </div>
       </div>
 
-      {/* Conversions */}
-      <MetricCard
-        label="Conversions"
-        value={row?.conversions ? fmtNum(row.conversions) : "—"}
-        sub={row?.conversions ? "Total konversi" : "Tidak ada data konversi untuk periode ini"}
-        loading={loading}
-      />
+      {/* Kelompok 3: Performance & Engagement Metrics */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold tracking-tight text-muted-foreground/80">Engagement & Traffic</h3>
+        <div className="grid grid-cols-3 gap-3">
+          <MetricCard
+            label="Clicks"
+            value={row ? fmtNum(row.clicks) : "—"}
+            sub="Total klik tindakan iklan"
+            loading={loading}
+          />
+          <MetricCard
+            label="CTR"
+            value={row ? `${parseFloat(row.ctr).toFixed(2)}%` : "—"}
+            sub="Click-through rate"
+            valueClassName="text-emerald-600 dark:text-emerald-400"
+            loading={loading}
+          />
+          <MetricCard
+            label="CPC"
+            value={row ? `Rp ${parseFloat(row.cpc).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+            sub="Rata-rata biaya per klik"
+            valueClassName="text-blue-600 dark:text-blue-400"
+            loading={loading}
+          />
+        </div>
+      </div>
     </div>
   )
 }

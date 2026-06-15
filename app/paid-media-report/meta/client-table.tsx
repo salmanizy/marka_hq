@@ -4,12 +4,14 @@ import { useState } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Search } from "lucide-react"
 
 interface Client {
   name: string
   accountId: string
   actId: string
+  source: "owned" | "client"
 }
 
 export function ClientTable({ clients }: { clients: Client[] }) {
@@ -52,21 +54,25 @@ export function ClientTable({ clients }: { clients: Client[] }) {
               <th className="rounded-tl-xl border-b px-4 py-3 text-left font-medium text-muted-foreground">
                 Client Account Name
               </th>
-              
+
               <th className="border-b px-4 py-3 text-left font-medium text-muted-foreground">
                 Account ID
               </th>
-              
+
+              <th className="border-b px-4 py-3 text-left font-medium text-muted-foreground">
+                Act ID
+              </th>
+
               {/* Kolom Terakhir: Beri rounded-tr-xl agar background ikut melengkung di kanan atas */}
               <th className="rounded-tr-xl border-b px-4 py-3 text-left font-medium text-muted-foreground">
-                Act ID
+                Type
               </th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={4} className="px-4 py-10 text-center text-muted-foreground">
                   {clients.length === 0 ? "No clients data retrieved." : "No results found."}
                 </td>
               </tr>
@@ -83,6 +89,11 @@ export function ClientTable({ clients }: { clients: Client[] }) {
                   </td>
                   <td className="px-4 py-3">{client.accountId}</td>
                   <td className="px-4 py-3">{client.actId}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={client.source === "owned" ? "secondary" : "outline"}>
+                      {client.source === "owned" ? "Owned" : "Client"}
+                    </Badge>
+                  </td>
                 </tr>
               ))
             )}

@@ -20,9 +20,14 @@ export async function GET(
       ? `time_range=${encodeURIComponent(JSON.stringify({ since, until }))}`
       : "date_preset=last_30d"
 
-  const url = `https://graph.facebook.com/v25.0/${actId}/insights?fields=spend,impressions,clicks,ctr,cpc,conversions,account_name&${timeParam}&access_token=${accessToken}`
-
-  const res = await fetch(url, { cache: "no-store" })
+  const fields = "account_name,spend,impressions,clicks,ctr,cpc,reach,frequency,cpm,purchase_roas,actions,action_values,cost_per_action_type";
+  const url = `https://graph.facebook.com/v25.0/${actId}/insights?fields=${fields}&${timeParam}&access_token=${accessToken}`;
+  
+  const res = await fetch(url, { 
+    next: { 
+      revalidate: 3600 // Cache hasil API selama 1 jam berdasarkan URL spesifik ini
+    } 
+  })
 
   if (!res.ok) {
     const body = await res.text()
