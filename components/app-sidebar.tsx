@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createClient } from "@/utils/supabase/client"
 
 import { NavPaidMedia } from "@/components/nav-paid-media"
 import { NavCreative } from "@/components/nav-creative"
@@ -16,115 +17,64 @@ import {
 } from "@/components/ui/sidebar"
 import { AudioLinesIcon, Proportions, ArrowDownRightIcon, ScrollText, PanelsTopLeft, Drill, UserRound, CircleGauge, ChartBar } from "lucide-react"
 
-// This is sample data.
+// Hapus data user dari sini, biarkan tim dan navigasi tetap statis
 const data = {
-  user: {
-    name: "Salman Azhar",
-    email: "salman-azhar@marka-digital.id",
-    avatar: "https://github.com/shadcn.png",
-  },
   teams: [
     {
       name: "Marka Digital Indonesia",
-      logo: (
-        <ArrowDownRightIcon
-        />
-      ),
+      logo: <ArrowDownRightIcon />,
       plan: "Enterprise",
     },
     {
       name: "Marka Growth Partner",
-      logo: (
-        <AudioLinesIcon
-        />
-      ),
+      logo: <AudioLinesIcon />,
       plan: "Startup",
     },
   ],
-
   navPaid: [
-    {
-      name: "Report",
-      url: "/paid-media-report",
-      icon: (
-        <Proportions
-        />
-      ),
-    },
-    {
-      name: "Briefs",
-      url: "/paid-media-briefs",
-      icon: (
-        <ScrollText
-        />
-      ),
-    },
-    {
-      name: "Landing Page Builder",
-      url: "/landing-page-builder",
-      icon: (
-        <PanelsTopLeft
-        />
-      ),
-    },
+    { name: "Report", url: "/paid-media-report", icon: <Proportions /> },
+    { name: "Briefs", url: "/paid-media-briefs", icon: <ScrollText /> },
+    { name: "Landing Page Builder", url: "/landing-page-builder", icon: <PanelsTopLeft /> },
   ],
-
   navCre: [
-    {
-      name: "Report",
-      url: "/creative-report",
-      icon: (
-        <Proportions
-        />
-      ),
-    },
-    {
-      name: "Tools",
-      url: "/creative-tools",
-      icon: (
-        <Drill
-        />
-      ),
-    },
-    {
-      name: "Creators",
-      url: "/creative-creators",
-      icon: (
-        <UserRound
-        />
-      ),
-    },
+    { name: "Report", url: "/creative-report", icon: <Proportions /> },
+    { name: "Tools", url: "/creative-tools", icon: <Drill /> },
+    { name: "Creators", url: "/creative-creators", icon: <UserRound /> },
   ],
-
   navCom: [
-    {
-      name: "Report",
-      url: "/commercial-report",
-      icon: (
-        <Proportions
-        />
-      ),
-    },
-    {
-      name: "Dashboard",
-      url: "/commercial-dashboard",
-      icon: (
-        <CircleGauge
-        />
-      ),
-    },
-    {
-      name: "Revenue",
-      url: "/commercial-revenue",
-      icon: (
-        <ChartBar
-        />
-      ),
-    },
+    { name: "Report", url: "/commercial-report", icon: <Proportions /> },
+    { name: "Dashboard", url: "/commercial-dashboard", icon: <CircleGauge /> },
+    { name: "Revenue", url: "/commercial-revenue", icon: <ChartBar /> },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const supabase = createClient()
+  
+  // State untuk menyimpan data user aktif
+  const [activeUser, setActiveUser] = React.useState({
+    name: "Loading...",
+    email: "Memuat data...",
+    avatar: "https://github.com/shadcn.png", // Avatar default
+  })
+
+  React.useEffect(() => {
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        setActiveUser({
+          // Ambil nama dari depan email jika metadata nama tidak ada
+          name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+          email: user.email || "",
+          avatar: user.user_metadata?.avatar_url || "https://github.com/shadcn.png",
+        })
+      }
+    }
+    
+    fetchUser()
+  }, [supabase])
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -138,7 +88,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {/* Lempar state activeUser ke komponen NavUser */}
+        <NavUser user={activeUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

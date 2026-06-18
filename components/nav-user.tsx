@@ -1,5 +1,8 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+import { createClient } from "@/utils/supabase/client"
+
 import {
   Avatar,
   AvatarFallback,
@@ -32,6 +35,17 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  
+  // Inisialisasi router dan supabase
+  const router = useRouter()
+  const supabase = createClient()
+
+  // Fungsi eksekusi logout
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push("/login")
+    router.refresh() // Memaksa Next.js untuk memperbarui state server
+  }
 
   return (
     <SidebarMenu>
@@ -74,33 +88,28 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <SparklesIcon
-                />
+                <SparklesIcon />
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <BadgeCheckIcon
-                />
+                <BadgeCheckIcon />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <CreditCardIcon
-                />
+                <CreditCardIcon />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <BellIcon
-                />
+                <BellIcon />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon
-              />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-50">
+              <LogOutIcon />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
