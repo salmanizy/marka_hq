@@ -1,12 +1,13 @@
+// paid-media-report/meta/page.tsx
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ClientTable } from "./client-table"
+import { getCachedClientList } from "@/lib/meta-fetcher"
 
-// Definisikan tipe data balikan dari Meta API
 interface MetaAdAccount {
   name: string;
   account_id: string;
-  id: string; // Meta mengembalikan format act_xxx di field "id"
+  id: string; 
 }
 
 interface MetaAdAccountsEdge {
@@ -28,7 +29,6 @@ interface ClientRow {
   source: ClientSource;
 }
 
-// Mapping satu edge (owned_ad_accounts / client_ad_accounts) ke format UI
 function mapAccounts(accounts: MetaAdAccount[] | undefined, source: ClientSource): ClientRow[] {
   if (!accounts) return []
   return accounts.map((account) => ({
@@ -44,41 +44,27 @@ export default async function Page() {
 
   try {
     const businessId = process.env.META_BUSINESS_ID;
-    // Panggil token dari Environment Variable
     const accessToken = process.env.META_ACCESS_TOKEN; 
 
     if (!accessToken) {
       console.warn("META_ACCESS_TOKEN belum diatur di .env.local");
+    } else if (!businessId) {
+      console.warn("META_BUSINESS_ID belum diatur di .env.local");
     } else {
-      // Fetching data langsung di server
-      // owned_ad_accounts -> akun yang dimiliki langsung oleh Business Manager ini
-      // client_ad_accounts -> akun klien yang sharing akses ke Business Manager ini
-      const response = await fetch(
-        `https://graph.facebook.com/v25.0/${businessId}?fields=owned_ad_accounts{name,account_id},client_ad_accounts{name,account_id}&access_token=${accessToken}`,
-        { 
-          // ISR: Cache data selama 1 jam (3600 detik) untuk menghindari Rate Limit Meta
-          next: { revalidate: 3600 } 
-        }
-      );
+      // Panggil fungsi cache sentralisasi dari Supabase
+      const data: MetaBusinessResponse = await getCachedClientList(businessId);
 
-      if (!response.ok) {
-        console.error("Gagal menarik data dari Meta API:", await response.text());
-      } else {
-        const data: MetaBusinessResponse = await response.json();
+      const combined = [
+        ...mapAccounts(data.owned_ad_accounts?.data, "owned"),
+        ...mapAccounts(data.client_ad_accounts?.data, "client"),
+      ]
 
-        // Gabungkan kedua edge, lalu hilangkan duplikat actId (kalau ada akun yang muncul di keduanya)
-        const combined = [
-          ...mapAccounts(data.owned_ad_accounts?.data, "owned"),
-          ...mapAccounts(data.client_ad_accounts?.data, "client"),
-        ]
-
-        const seen = new Set<string>()
-        clients = combined.filter((account) => {
-          if (seen.has(account.actId)) return false
-          seen.add(account.actId)
-          return true
-        })
-      }
+      const seen = new Set<string>()
+      clients = combined.filter((account) => {
+        if (seen.has(account.actId)) return false
+        seen.add(account.actId)
+        return true
+      })
     }
   } catch (error) {
     console.error("Terjadi kesalahan saat fetching data Meta:", error);

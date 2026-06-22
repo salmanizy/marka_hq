@@ -1,4 +1,6 @@
-import type { NextRequest } from "next/server"
+// app/api/insights/[actId]/route.ts
+import { NextRequest, NextResponse } from "next/server"
+import { getCachedMetaData } from "@/lib/meta-fetcher"
 
 export async function GET(
   request: NextRequest,
@@ -6,7 +8,7 @@ export async function GET(
 ) {
   const accessToken = process.env.META_ACCESS_TOKEN
   if (!accessToken) {
-    return Response.json({ error: "META_ACCESS_TOKEN not configured" }, { status: 500 })
+    return NextResponse.json({ error: "META_ACCESS_TOKEN not configured" }, { status: 500 })
   }
 
   const { actId } = await params
@@ -15,25 +17,15 @@ export async function GET(
   const since = searchParams.get("since")
   const until = searchParams.get("until")
 
-  const timeParam =
-    since && until
-      ? `time_range=${encodeURIComponent(JSON.stringify({ since, until }))}`
-      : "date_preset=last_30d"
-
-  const fields = "account_name,spend,impressions,clicks,ctr,cpc,reach,frequency,cpm,purchase_roas,actions,action_values,cost_per_action_type";
-  const url = `https://graph.facebook.com/v25.0/${actId}/insights?fields=${fields}&${timeParam}&access_token=${accessToken}`;
-  
-  const res = await fetch(url, { 
-    next: { 
-      revalidate: 3600 // Cache hasil API selama 1 jam berdasarkan URL spesifik ini
-    } 
-  })
-
-  if (!res.ok) {
-    const body = await res.text()
-    return Response.json({ error: body }, { status: res.status })
+  try {
+    // Panggil fungsi central cache kita
+    const data = await getCachedMetaData(actId, since, until)
+    return NextResponse.json(data)
+  } catch (error: any) {
+    console.error("Route Insights Error:", error)
+    return NextResponse.json(
+      { error: error.message || "Gagal mengambil data dari Meta API" },
+      { status: 500 }
+    )
   }
-
-  const data = await res.json()
-  return Response.json(data)
 }
