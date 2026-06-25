@@ -11,7 +11,7 @@ interface Client {
   name: string
   accountId: string
   actId: string
-  source: "owned" | "client"
+  source: "owned" | "client" | "shared"
 }
 
 export function ClientTable({ clients }: { clients: Client[] }) {

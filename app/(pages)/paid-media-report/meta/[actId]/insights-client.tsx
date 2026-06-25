@@ -70,13 +70,15 @@ function MetricCard({
 }
 
 export function InsightsClient({ actId }: { actId: string }) {
-  const today = new Date()
-  const thirtyDaysAgo = new Date(today)
-  thirtyDaysAgo.setDate(today.getDate() - 30)
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  
+  const thirtyDaysAgo = new Date(yesterday)
+  thirtyDaysAgo.setDate(yesterday.getDate() - 30)
 
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: thirtyDaysAgo,
-    to: today,
+    to: yesterday,
   })
   const [calOpen, setCalOpen] = React.useState(false)
   const [rows, setRows] = React.useState<InsightRow[]>([])

@@ -4,19 +4,33 @@ import { createClient } from "@/utils/supabase/server"
 const CACHE_DURATION = 60 * 60 * 1000 // 1 Jam
 const META_VERSION = "v25.0"
 
+async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    const res = await fetch(url)
+
+    if (res.status === 429) {
+      const waitMs = Math.pow(2, i) * 1000 // 1s, 2s, 4s
+      console.warn(`⚠️ [RATE LIMIT] Retry ${i + 1}/${retries} in ${waitMs}ms...`)
+      await new Promise(r => setTimeout(r, waitMs))
+      continue
+    }
+
+    return res
+  }
+  throw new Error("Meta API rate limit exceeded after retries")
+}
+
 export async function getCachedMetaData(actId: string, since?: string | null, until?: string | null) {
   const supabase = await createClient()
   const cacheKey = `meta_insights_${actId}_${since || "default"}_${until || "default"}`
   const now = Date.now()
 
-  // 1. Cek cache dengan menangkap objek error
   const { data: cached, error: selectError } = await supabase
     .from("api_caches")
     .select("*")
     .eq("cache_key", cacheKey)
     .single()
 
-  // JIKA ADA ERROR SELAIN "DATA NOT FOUND", LOG KE TERMINAL
   if (selectError && selectError.code !== "PGRST116") {
     console.error("❌ [SUPABASE SELECT ERROR]:", selectError.message)
   }
@@ -38,19 +52,17 @@ export async function getCachedMetaData(actId: string, since?: string | null, un
   const fields = "account_name,spend,impressions,clicks,ctr,cpc,reach,frequency,cpm,purchase_roas,actions,action_values,cost_per_action_type"
   const url = `https://graph.facebook.com/${META_VERSION}/${actId}/insights?fields=${fields}&${timeParam}&access_token=${accessToken}`
 
-  const res = await fetch(url)
+  const res = await fetchWithRetry(url)
   if (!res.ok) throw new Error(await res.text())
 
   const freshData = await res.json()
 
-  // 2. Simpan cache dengan menangkap objek error
   const { error: upsertError } = await supabase.from("api_caches").upsert({
     cache_key: cacheKey,
     data: freshData,
     last_fetched: new Date().toISOString()
   }, { onConflict: "cache_key" })
 
-  // JIKA GAGAL MENYIMPAN, LOG KE TERMINAL
   if (upsertError) {
     console.error("❌ [SUPABASE UPSERT ERROR]:", upsertError.message)
   }
@@ -58,10 +70,9 @@ export async function getCachedMetaData(actId: string, since?: string | null, un
   return freshData
 }
 
-// Lakukan hal yang sama untuk fungsi getCachedClientList lu (tambahkan log error upsert/select)
-export async function getCachedClientList(businessId: string) {
+export async function getCachedClientList() {
   const supabase = await createClient()
-  const cacheKey = `meta_client_list_${businessId}`
+  const cacheKey = `meta_client_list_me`
   const now = Date.now()
 
   const { data: cached, error: selectError } = await supabase
@@ -82,11 +93,11 @@ export async function getCachedClientList(businessId: string) {
     }
   }
 
-  console.log(`🐌 [CACHE MISS] Nembak Meta Client List untuk BM ${businessId}...`)
+  console.log(`🐌 [CACHE MISS] Nembak Meta Client List...`)
   const accessToken = process.env.META_ACCESS_TOKEN
-  const url = `https://graph.facebook.com/${META_VERSION}/${businessId}?fields=owned_ad_accounts{name,account_id},client_ad_accounts{name,account_id}&access_token=${accessToken}`
-  
-  const res = await fetch(url)
+  const url = `https://graph.facebook.com/${META_VERSION}/me/adaccounts?fields=name,account_id,id,account_status&limit=50&access_token=${accessToken}`
+
+  const res = await fetchWithRetry(url)
   if (!res.ok) throw new Error(await res.text())
 
   const freshData = await res.json()
