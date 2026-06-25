@@ -1,7 +1,8 @@
 // lib/meta-fetcher.ts
 import { createClient } from "@/utils/supabase/server"
 
-const CACHE_DURATION = 60 * 60 * 1000 // 1 Jam
+const CACHE_DURATION = 60 * 60 * 1000 // 1 jam - untuk insights
+const CLIENT_LIST_CACHE_DURATION = 3 * 60 * 60 * 1000 // 3 jam
 const META_VERSION = "v25.0"
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
@@ -87,7 +88,9 @@ export async function getCachedClientList() {
 
   if (cached) {
     const lastFetched = new Date(cached.last_fetched).getTime()
-    if (now - lastFetched < CACHE_DURATION) {
+    const diff = now - lastFetched
+    console.log(`🕐 Cache age: ${Math.round(diff / 1000 / 60)} menit, CACHE_DURATION: ${CLIENT_LIST_CACHE_DURATION / 1000 / 60} menit`)
+    if (now - lastFetched < CLIENT_LIST_CACHE_DURATION) {
       console.log(`⚡ [CACHE HIT] Client List dari Supabase`)
       return cached.data
     }
