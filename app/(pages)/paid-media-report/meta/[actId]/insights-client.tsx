@@ -72,11 +72,15 @@ function MetricCard({
 export function InsightsClient({ actId }: { actId: string }) {
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
-  
+
   const thirtyDaysAgo = new Date(yesterday)
   thirtyDaysAgo.setDate(yesterday.getDate() - 30)
 
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: thirtyDaysAgo,
+    to: yesterday,
+  })
+  const [pendingRange, setPendingRange] = React.useState<DateRange | undefined>({
     from: thirtyDaysAgo,
     to: yesterday,
   })
@@ -114,10 +118,9 @@ export function InsightsClient({ actId }: { actId: string }) {
 
   const row = rows[0]
 
-  // Ekstraksi metrik hasil dan CPL langsung dari objek data Meta
-  const totalResultsRaw = row?.conversions 
-    ? row.conversions 
-    : row?.actions?.find((x) => x.action_type === "purchase" || x.action_type === "lead" || x.action_type === "omni_purchase")?.value 
+  const totalResultsRaw = row?.conversions
+    ? row.conversions
+    : row?.actions?.find((x) => x.action_type === "purchase" || x.action_type === "lead" || x.action_type === "omni_purchase")?.value
       || row?.actions?.[0]?.value || "0"
 
   const cpl = row?.cost_per_action_type?.find(
@@ -128,30 +131,66 @@ export function InsightsClient({ actId }: { actId: string }) {
     <div className="flex flex-col gap-6">
       {/* Date picker */}
       <div className="flex items-center gap-2">
-        <Popover open={calOpen} onOpenChange={setCalOpen}>
+        <Popover
+          open={calOpen}
+          onOpenChange={(open) => {
+            setCalOpen(open)
+            if (!open) setPendingRange(dateRange) // reset pending kalau ditutup tanpa apply
+          }}
+        >
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 min-w-[240px] justify-start font-normal">
-              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              {dateRange?.from && dateRange?.to
-                ? `${format(dateRange.from, "dd MMM yyyy")} – ${format(dateRange.to, "dd MMM yyyy")}`
-                : "Select date range"}
+            <Button
+              variant="outline"
+              id="date-picker-range"
+              className="justify-start px-2.5 font-normal"
+            >
+              <CalendarIcon />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                    {format(dateRange.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(dateRange.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick a date</span>
+              )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={(range) => {
-                setDateRange(range)
-                if (range?.from && range?.to) {
-                  setCalOpen(false)
-                  fetchInsights(range)
-                }
-              }}
+              defaultMonth={pendingRange?.from}
+              selected={pendingRange}
+              onSelect={setPendingRange}
               numberOfMonths={2}
-              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+              disabled={(date) => date > new Date(new Date().setHours(0, 0, 0, 0)) || date < new Date("1900-01-01")}
             />
+            <div className="flex items-center justify-end gap-2 border-t px-4 py-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setPendingRange(dateRange)
+                  setCalOpen(false)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={!pendingRange?.from || !pendingRange?.to}
+                onClick={() => {
+                  setDateRange(pendingRange)
+                  fetchInsights(pendingRange)
+                  setCalOpen(false)
+                }}
+              >
+                Apply
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
 
@@ -162,6 +201,7 @@ export function InsightsClient({ actId }: { actId: string }) {
             className="text-muted-foreground"
             onClick={() => {
               setDateRange(undefined)
+              setPendingRange(undefined)
               fetchInsights(undefined)
             }}
           >
