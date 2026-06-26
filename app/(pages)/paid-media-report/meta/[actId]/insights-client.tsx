@@ -200,9 +200,10 @@ export function InsightsClient({ actId }: { actId: string }) {
             size="sm"
             className="text-muted-foreground"
             onClick={() => {
-              setDateRange(undefined)
-              setPendingRange(undefined)
-              fetchInsights(undefined)
+              const defaultRange = {from: thirtyDaysAgo, to: yesterday}
+              setDateRange(defaultRange)
+              setPendingRange(defaultRange)
+              fetchInsights(defaultRange)
             }}
           >
             Reset
