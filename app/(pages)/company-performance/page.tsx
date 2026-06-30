@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { subDays } from "date-fns"
 import { type DateRange } from "react-day-picker"
-import { RefreshCw, AlertCircle, TrendingUp } from "lucide-react"
+import { RefreshCw, AlertCircle, TrendingUp, Check } from "lucide-react"
 
 import { useCompanyPerformance } from "@/hooks/use-company-performance"
 import { MetricCard }     from "@/components/metric-card"
@@ -23,10 +23,23 @@ const DEFAULT_RANGE: DateRange = {
 }
 
 export default function CompanyPerformancePage() {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(DEFAULT_RANGE)
-  const { metrics, runway, state, error, refetch } = useCompanyPerformance(dateRange)
+  // appliedRange = range yang sudah dikonfirmasi user, dipakai untuk fetch data
+  // draftRange   = range yang sedang dipilih-pilih di kalender, belum di-confirm
+  const [appliedRange, setAppliedRange] = useState<DateRange | undefined>(DEFAULT_RANGE)
+  const [draftRange, setDraftRange]     = useState<DateRange | undefined>(DEFAULT_RANGE)
+
+  const { metrics, runway, state, error, refetch } = useCompanyPerformance(appliedRange)
 
   const isLoading = state === "idle" || state === "loading"
+  const hasDraftChanged =
+    draftRange?.from?.toISOString() !== appliedRange?.from?.toISOString() ||
+    draftRange?.to?.toISOString()   !== appliedRange?.to?.toISOString()
+
+  const handleConfirm = () => {
+    if (draftRange?.from && draftRange?.to) {
+      setAppliedRange(draftRange)
+    }
+  }
 
   const pctChange = (current: number, previous: number) =>
     previous === 0 ? undefined : ((current - previous) / previous) * 100
@@ -62,7 +75,7 @@ export default function CompanyPerformancePage() {
               variant="outline"
               size="sm"
               onClick={refetch}
-              disabled={isLoading || !dateRange?.from || !dateRange?.to}
+              disabled={isLoading || !appliedRange?.from || !appliedRange?.to}
               className="h-9 gap-1.5"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
@@ -70,16 +83,6 @@ export default function CompanyPerformancePage() {
             </Button>
           </div>
         </div>
-
-        {/* ── Calendar Range Picker ─────────────────────────────────── */}
-        <div className="flex justify-start">
-          <CalendarRange
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-          />
-        </div>
-
-        <Separator />
 
         {/* ── Error banner ──────────────────────────────────────────── */}
         {state === "error" && (
@@ -97,18 +100,51 @@ export default function CompanyPerformancePage() {
           </Card>
         )}
 
-        {/* ── Row 1: Runway + 3 KPI cards ──────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-
+        {/* ── SECTION 1: Company Runway (paling penting, di atas sendiri) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {isLoading || !runway ? (
             <CardSkeleton rows={4} />
           ) : (
             <RunwayMeter
               months={runway.runway_months}
               totalCash={runway.total_cash}
-              monthlyBurn={runway.avg_monthly_burn}
+              monthlyNetBurn={runway.monthly_net_burn}
+              isProfitable={runway.is_profitable}
             />
           )}
+        </div>
+
+        <Separator />
+
+        {/* ── SECTION 2: Date Range Picker + Confirm ──────────────────── */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium text-muted-foreground">Pilih Periode</h2>
+            {hasDraftChanged && (
+              <Button
+                size="sm"
+                onClick={handleConfirm}
+                disabled={!draftRange?.from || !draftRange?.to}
+                className="h-8 gap-1.5"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Terapkan Periode
+              </Button>
+            )}
+          </div>
+
+          <div className="flex justify-start">
+            <CalendarRange
+              dateRange={draftRange}
+              onDateRangeChange={setDraftRange}
+            />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ── SECTION 3: Revenue, OPEX, Net Profit Margin ─────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
           {isLoading || !metrics ? (
             <CardSkeleton />
@@ -167,7 +203,7 @@ export default function CompanyPerformancePage() {
           )}
         </div>
 
-        {/* ── Row 2: Breakdown charts ───────────────────────────────── */}
+        {/* ── SECTION 4: Breakdown charts ──────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {isLoading || !metrics ? (
             <>
@@ -193,7 +229,7 @@ export default function CompanyPerformancePage() {
         </div>
 
         {/* ── Footer ───────────────────────────────────────────────── */}
-        <p className="text-center text-xs text-muted-foreground/60 pb-2">
+        <p suppressHydrationWarning className="text-center text-xs text-muted-foreground/60 pb-2">
           Data di-cache 5 menit · Sumber: Kledo · Last updated:{" "}
           {new Date().toLocaleString("id-ID")}
         </p>

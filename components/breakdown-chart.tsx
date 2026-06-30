@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 type BreakdownChartProps = {
   title: string
-  rows: Array<{ name: string; total: number }>
+  rows: Array<{ id: number; name: string; total: number }>
   barColor?: string // tailwind bg class, default violet
   emptyLabel?: string
 }
@@ -61,7 +61,7 @@ export function BreakdownChart({
               const color = barColor ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length]
 
               return (
-                <TooltipProvider key={row.name}>
+                <TooltipProvider key={row.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="cursor-default">

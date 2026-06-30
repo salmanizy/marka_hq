@@ -10,8 +10,8 @@ export type DashboardMetrics = {
   grossProfit: number
   netProfit: number
   netProfitMargin: number
-  opexBreakdown: Array<{ name: string; total: number }>
-  revenueBreakdown: Array<{ name: string; total: number }>
+  opexBreakdown: Array<{ id: number; name: string; total: number }>
+  revenueBreakdown: Array<{ id: number; name: string; total: number }>
   prevRevenue: number
   prevOpex: number
   prevNetProfit: number
@@ -20,8 +20,9 @@ export type DashboardMetrics = {
 
 export type RunwayMetrics = {
   total_cash: number
-  avg_monthly_burn: number
+  monthly_net_burn: number
   runway_months: number | null
+  is_profitable: boolean
 }
 
 export type LoadingState = "idle" | "loading" | "success" | "error"
@@ -32,13 +33,15 @@ type AccountRowRaw = {
   account: { name: string }
 }
 
-function mapRows(rows: AccountRowRaw[] | undefined): Array<{ name: string; total: number }> {
+function mapRows(rows: AccountRowRaw[] | undefined): Array<{ id: number; name: string; total: number }> {
   if (!rows) return []
   return rows
-    .map((r) => ({ name: r.account?.name ?? `Account ${r.account_id}`, total: r.net ?? 0 }))
+    .map((r) => ({ id: r.account_id, name: r.account?.name ?? `Account ${r.account_id}`, total: r.net ?? 0 }))
     .filter((r) => r.total !== 0)
 }
 
+// dateRange di sini adalah range yang sudah "dikonfirmasi" user (lewat tombol Confirm di calendar),
+// bukan range sementara yang masih dipilih-pilih di kalender.
 export function useCompanyPerformance(dateRange: DateRange | undefined) {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
   const [runway, setRunway] = useState<RunwayMetrics | null>(null)
@@ -57,7 +60,7 @@ export function useCompanyPerformance(dateRange: DateRange | undefined) {
     try {
       const [plRes, runwayRes] = await Promise.all([
         fetch(`/api/kledo/profit-loss?date_from=${dateFrom}&date_to=${dateTo}`),
-        fetch(`/api/kledo/runway`),
+        fetch(`/api/kledo/runway?date_from=${dateFrom}&date_to=${dateTo}`),
       ])
 
       if (!plRes.ok)     throw new Error(`Profit loss fetch failed: ${plRes.status}`)
@@ -66,10 +69,9 @@ export function useCompanyPerformance(dateRange: DateRange | undefined) {
       const plData     = await plRes.json()
       const runwayData = await runwayRes.json()
 
-      // Struktur asli Kledo: current.data.data.total & current.data.data.data
-      const curTotal  = plData.current?.data?.data?.total ?? {}
-      const curRows   = plData.current?.data?.data?.data ?? {}
-      const prevTotal = plData.previous?.data?.data?.total ?? {}
+      const curTotal  = plData.current?.data?.total ?? {}
+      const curRows   = plData.current?.data?.data ?? {}
+      const prevTotal = plData.previous?.data?.total ?? {}
 
       const revenue   = curTotal.trading_income ?? 0
       const opex      = Math.abs(curTotal.expenses ?? 0)
